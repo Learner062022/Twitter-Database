@@ -1,0 +1,220 @@
+CREATE TABLE IF NOT EXISTS users (
+    username VARCHAR(20) NOT NULL PRIMARY KEY,
+    first_name VARCHAR(20) NOT NULL,
+    last_name VARCHAR(20) NOT NULL,
+    email VARCHAR(30) UNIQUE NOT NULL,
+    date_joined DATE NOT NULL
+);
+
+INSERT INTO users (username, first_name, last_name, email, date_joined) VALUES
+('dedyla', 'Dylan', 'DeSouza', 'dedyla@tafe.wa.edu.au', '2024-06-25'),
+('chthom', 'Chris', 'Thompson', 'chthom@tafe.wa.edu.au', '2024-06-24'),
+('wabrad', 'Wade', 'Bradley', 'wabrad@tafe.wa.edu.au', '2024-06-23'),
+('digeor', 'Diana', 'George', 'digeor@tafe.wa.edu.au', '2024-06-22'),
+('bojake', 'Bob', 'Jake', 'bojake@tafe.wa.edu.au', '2024-06-21'),
+('cajaco', 'Caleb', 'Jacobs', 'cajaco@tafe.wa.edu.au', '2024-06-20'),
+('doluna', 'Dorothy', 'Luna', 'doluna@tafe.wa.edu.au', '2024-06-19'),
+('janedoe', 'Jane', 'Doe', 'janedoe@example.com', '2023-06-18'),
+('johndoe', 'John', 'Doe', 'johndoe@example.com', '2022-06-17'),
+('alicesm', 'Alice', 'Smith', 'alicesm@example.com', '2024-01-01'),
+('bsmith', 'Bob', 'Smith', 'bsmith@example.com', '2023-05-10'),
+('clbrown', 'Clara', 'Brown', 'clbrown@example.com', '2024-02-15');
+
+SELECT username, email FROM users;
+SELECT username, date_joined FROM users WHERE YEAR(date_joined) = YEAR(CURDATE());
+SELECT COUNT(*) AS user_count FROM users WHERE YEAR(date_joined) = YEAR(CURDATE()) - 1;
+SELECT last_name, first_name, email, date_joined FROM users ORDER BY last_name, first_name;
+
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_last_first_name ON users(last_name, first_name);
+
+DELIMITER //
+CREATE PROCEDURE get_user_details_by_year(year_joined INT UNSIGNED)
+BEGIN
+    SELECT * FROM users WHERE YEAR(date_joined) = year_joined ORDER BY date_joined;
+END //
+DELIMITER ;
+
+CALL get_user_details_by_year(YEAR(CURDATE()));
+
+CREATE TABLE IF NOT EXISTS messages (
+    ID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    author_username VARCHAR(20) NOT NULL,
+    message VARCHAR(256) NOT NULL,
+    time_posted TIME NOT NULL,
+    FOREIGN KEY (author_username) REFERENCES users(username) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    ID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    author_username VARCHAR(20) NOT NULL,
+    message VARCHAR(256) NOT NULL,
+    time_posted DATETIME NOT NULL,
+    FOREIGN KEY (author_username) REFERENCES users(username) ON DELETE CASCADE
+);
+
+INSERT INTO messages (author_username, message, time_posted) VALUES
+('dedyla', 'Did you guys see in the Sydney Morning Herald that catholic schools in Melbourne are being encouraged to use ChatGPT for teaching and assessment?', '2024-06-25 08:00:00'),
+('cajaco', 'This is a test message', '2024-06-24 09:00:00'),
+('chthom', 'No. Who wrote the story and when?', '2024-06-23 10:00:00'),
+('bojake', 'What do you think about the new policy?', '2024-06-22 11:00:00'),
+('wabrad', 'Yesterday at 08:51 by Adam Carey', '2024-06-21 12:00:00'),
+('digeor', 'How old must somebody be to use it?', '2024-06-20 13:00:00'),
+('doluna', 'What states have banned ChatGPT?', '2024-06-19 14:00:00'),
+('janedoe', 'Just testing the new message board!', '2023-06-18 08:00:00'),
+('johndoe', 'Hello, everyone!', '2022-06-17 09:00:00'),
+('alicesm', 'Happy New Year!', '2024-01-01 00:00:00'),
+('bsmith', 'Excited about the new project launch!', '2023-05-10 10:00:00'),
+('clbrown', 'Great job team!', '2024-02-15 11:00:00');
+
+SELECT message, author_username FROM messages;
+SELECT users.username, users.email, messages.message 
+FROM users 
+JOIN messages ON users.username = messages.author_username 
+ORDER BY messages.time_posted;
+
+SELECT COUNT(*) AS message_count FROM messages;
+
+DELIMITER //
+CREATE PROCEDURE calculate_message_percentage(name VARCHAR(20))
+BEGIN 
+    SELECT ((SELECT COUNT(*) FROM messages WHERE author_username = name) / (SELECT COUNT(*) FROM messages) * 100) AS percentage;
+END //
+DELIMITER ;
+
+CALL calculate_message_percentage('dedyla');
+
+SELECT DISTINCT author_username FROM messages;
+
+DELIMITER //
+CREATE PROCEDURE get_user_messages(name VARCHAR(20))
+BEGIN 
+    SELECT message FROM messages WHERE author_username = name ORDER BY time_posted DESC;
+END //
+DELIMITER ;
+
+CALL get_user_messages('dedyla');
+
+CREATE TABLE IF NOT EXISTS topics (
+    name VARCHAR(100) NOT NULL PRIMARY KEY,
+    trending BIT
+);
+
+INSERT INTO topics (name, trending) VALUES
+('Technology', 1),
+('Education', 0),
+('Health', 1),
+('Sports', 0),
+('Entertainment', 1),
+('News', 1),
+('Science', 0),
+('Movies', 1),
+('AI', 1);
+
+CREATE TABLE IF NOT EXISTS message_topics (
+    ID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    message_id INT UNSIGNED NOT NULL,
+    topic_name VARCHAR(100) NOT NULL,
+    FOREIGN KEY (message_id) REFERENCES messages(ID) ON DELETE CASCADE,
+    FOREIGN KEY (topic_name) REFERENCES topics(name)
+);
+
+INSERT INTO message_topics (message_id, topic_name) VALUES
+(1, 'Education'),
+(3, 'News'),
+(4, 'Health'),
+(5, 'News'),
+(6, 'Education'),
+(7, 'Technology'),
+(8, 'Entertainment'),
+(10, 'Health'),
+(11, 'Movies'),
+(12, 'AI');
+
+SELECT name AS trending_topics FROM topics WHERE trending = 1;
+
+CREATE VIEW topic_messages AS 
+SELECT topics.*, messages.ID AS message_id, messages.author_username, messages.time_posted, messages.message
+FROM message_topics
+INNER JOIN messages ON messages.ID = message_topics.message_id
+INNER JOIN topics ON message_topics.topic_name = topics.name;
+
+SELECT message FROM topic_messages WHERE trending = 1 ORDER BY time_posted DESC;
+
+DELIMITER //
+CREATE PROCEDURE get_messages_by_topic(topic VARCHAR(100))
+BEGIN 
+    SELECT message, author_username FROM topic_messages WHERE name = topic;
+END //
+DELIMITER ;
+
+CALL get_messages_by_topic('Technology');
+
+DELIMITER //
+CREATE PROCEDURE get_topicless_messages(user VARCHAR(20))
+BEGIN 
+    SELECT message 
+    FROM messages 
+    WHERE author_username = user 
+    AND ID NOT IN (SELECT message_id FROM message_topics);
+END //
+DELIMITER ;
+
+CALL get_topicless_messages('janedoe');
+
+DELIMITER //
+CREATE PROCEDURE count_messages_by_user_and_topic(user VARCHAR(20), topic VARCHAR(100))
+BEGIN 
+    SELECT COUNT(*) AS message_count
+    FROM message_topics 
+    JOIN messages ON message_topics.message_id = messages.ID
+    WHERE messages.author_username = user AND message_topics.topic_name = topic;
+END //
+DELIMITER ;
+
+CALL count_messages_by_user_and_topic('dedyla', 'Education');
+
+CREATE TABLE IF NOT EXISTS deleted_users (
+    ID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(20) UNIQUE NOT NULL,
+    date_joined DATE NOT NULL,
+    date_quit DATE NOT NULL,
+    amount_messages_sent INT UNSIGNED NOT NULL
+);
+
+DELIMITER //
+CREATE TRIGGER record_deleted_user
+AFTER DELETE ON users
+FOR EACH ROW
+BEGIN
+   INSERT INTO deleted_users (username, date_joined, date_quit, amount_messages_sent) 
+   VALUES (OLD.username, OLD.date_joined, CURDATE(), 
+           (SELECT COUNT(*) FROM messages WHERE author_username = OLD.username));
+END //
+DELIMITER ;
+
+DELETE FROM users WHERE username = 'dedyla';
+DELETE FROM users WHERE username = 'cajaco';
+
+DELIMITER //
+CREATE PROCEDURE get_users_quit()
+BEGIN 
+    SELECT username, date_joined, date_quit, 
+           TIMESTAMPDIFF(DAY, date_joined, date_quit) AS length_membership_days, 
+           amount_messages_sent
+    FROM deleted_users
+    ORDER BY date_quit DESC; 
+END //
+DELIMITER ;
+
+CALL get_users_quit();
+
+Measuring engagement:
+- Frequency of use within a certain timeframe.
+- Duration of time users spend on it within a certain timeframe.
+- Amount of messages that are sent in a certain timeframe.
+
+Meta data that can be mined from app's data that's useful to advertisers:
+- Time at which users' are most and least active.
+- Content users' are interested in.
+- Users' average duration spent on it in a certain timeframe.

@@ -45,14 +45,6 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (author_username) REFERENCES users(username) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS messages (
-    ID INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    author_username VARCHAR(20) NOT NULL,
-    message VARCHAR(256) NOT NULL,
-    time_posted DATETIME NOT NULL,
-    FOREIGN KEY (author_username) REFERENCES users(username) ON DELETE CASCADE
-);
-
 INSERT INTO messages (author_username, message, time_posted) VALUES
 ('dedyla', 'Did you guys see in the Sydney Morning Herald that catholic schools in Melbourne are being encouraged to use ChatGPT for teaching and assessment?', '2024-06-25 08:00:00'),
 ('cajaco', 'This is a test message', '2024-06-24 09:00:00'),

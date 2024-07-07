@@ -1,4 +1,4 @@
-# Twitter-Like-Database
+# TwitterLikeDatabase
 
 This script creates, manages and analyzes a micro-blogging service database. The database consists of multiple parts, each handling different aspects of the service.
 

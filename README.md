@@ -63,8 +63,8 @@ This project provides a comprehensive example of how to design a database for a 
 Clone the Repository:
 
 ```bash
-git clone https://github.com/Learner062022/Twitter-Like-Database.git
-cd Twitter-Like-Database
+git clone https://github.com/Learner062022/TwitterLikeDatabase.git
+cd TwitterLikeDatabase
 ```
 ## Set Up the Database
 

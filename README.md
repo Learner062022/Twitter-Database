@@ -73,7 +73,7 @@ cd TwitterLikeDatabase
 
 ## Insert Sample Data
 
-Use the provided sample data to populate the database with initial data for testing and exploration.
+Use the sample data to populate the database for initial testing.
 
 ## Run Queries and Procedures
 

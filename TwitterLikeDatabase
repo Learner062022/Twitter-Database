@@ -89,7 +89,7 @@ CALL get_user_messages('dedyla');
 
 CREATE TABLE IF NOT EXISTS topics (
     name VARCHAR(100) NOT NULL PRIMARY KEY,
-    trending BIT
+    trending BIT NOT NULL
 );
 
 INSERT INTO topics (name, trending) VALUES
@@ -201,12 +201,12 @@ DELIMITER ;
 
 CALL get_users_quit();
 
-Measuring engagement:
-- Frequency of use within a certain timeframe.
-- Duration of time users spend on it within a certain timeframe.
-- Amount of messages that are sent in a certain timeframe.
+Measuring Engagement:
+- Frequency of use within a timeframe.
+- Time spent by users in a timeframe.
+- Number of messages sent in a timeframe.
 
-Meta data that can be mined from app's data that's useful to advertisers:
-- Time at which users' are most and least active.
-- Content users' are interested in.
-- Users' average duration spent on it in a certain timeframe.
+Useful Metadata for Advertisers:
+- Peak and low activity times.
+- Users' interests.
+- Average duration of user sessions in a timeframe.
